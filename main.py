@@ -1,27 +1,21 @@
 import cv2
+from tello_zune import TelloZune
 import detect_yolo as dy
 import tracking
-from tello_zune import TelloZune
+tello = TelloZune(DEBUG=True)
 
-def main():
-    tello = TelloZune()
+tello.start_tello()
 
-    tello.start_tello()
+while True:
+    tello.start_video()
+    img = tello.get_frame()
+    dy.start_detection(img)
+    tracking.start_tracking(tello, dy.values_detect)
+    tello.calc_fps(dy.values_detect[0])
+    cv2.imshow("Tello", dy.values_detect[0])
 
-    while True:
-        tello.start_video()
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-        dy.start_detection(tello.frame_detection)
-        tracking.start_tracking(tello, dy.values_detect)
-        #cv2.imshow("fds", tello.tello_frame)
-        frame = dy.values_detect[0]  
-        cv2.imshow("Detections", frame)
-
-        if cv2.waitKey(1) == ord('q'):
-            break
-
-    tello.end_video()
-    tello.end_tello()
-
-if __name__ == "__main__":
-    main()
+tello.end_tello()
+cv2.destroyAllWindows()
